@@ -160,7 +160,8 @@ class Worker:
             end_time = context["end_timestamp"] = time.time()
             context["duration_seconds"] = end_time - start_time
             extra = {"action": log_action, "job": context, "result": task_result}
-            logger.log(log_level, log_title, extra=extra, exc_info=exc_info)
+            ftext = f"{log_title} on job {context['call_string']} in {context['duration_seconds']:.3f}"
+            logger.log(log_level, ftext, extra=extra, exc_info=exc_info)
 
     def stop(
         self,
@@ -168,10 +169,11 @@ class Worker:
         frame: Optional[signals.FrameType] = None,
     ) -> None:
         self.stop_requested = True
-        log_context = self.log_context
+        context = self.log_context
         self.job_store.stop()
 
         logger.info(
-            "Stop requested, waiting for current job to finish",
-            extra={"action": "stopping_worker", "job": log_context},
+            f"Stop requested, waiting for current job "
+            f"({context['call_string']}) to finish",
+            extra={"action": "stopping_worker", "job": context},
         )
